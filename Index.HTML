@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pac-Man</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header id="hud">
+    <div class="stat"><span class="lbl">Score</span><span class="val" id="score">0</span></div>
+    <div class="stat"><span class="lbl">Time</span><span class="val" id="timer">00:00</span></div>
+    <div class="stat"><span class="lbl">Lives</span><span class="val lives" id="lives"></span></div>
+    <div class="stat"><span class="lbl">Level</span><span class="val" id="level">1</span></div>
+    <div class="stat"><span class="lbl">FPS</span><span class="val" id="fps">--</span></div>
+  </header>
+
+  <main id="stage">
+    <div id="board">
+      <div id="walls"></div>
+      <div id="dots"></div>
+      <div id="pellets"></div>
+      <div id="actors">
+        <div id="pac" class="sprite pac">
+          <div class="body"><div class="half top"></div><div class="half bot"></div></div>
+        </div>
+      </div>
+      <div id="msg" class="hidden"></div>
+    </div>
+
+    <div id="start" class="overlay">
+      <h1>PAC-MAN</h1>
+      <p>Eat every dot, avoid the ghosts.</p>
+      <p class="blink-text">Press ENTER to start</p>
+    </div>
+
+    <div id="pause" class="overlay hidden">
+      <h2>PAUSED</h2>
+      <button id="btnContinue" class="menu-btn sel" type="button">Continue</button>
+      <button id="btnRestart" class="menu-btn" type="button">Restart</button>
+      <p class="hint">&uarr;/&darr; select &middot; Enter confirm &middot; Esc continue</p>
+    </div>
+
+    <div id="over" class="overlay hidden">
+      <h2>GAME OVER</h2>
+      <p id="overInfo"></p>
+      <p class="blink-text">Press ENTER to play again</p>
+    </div>
+  </main>
+
+  <footer id="help">
+    Arrows / WASD: hold to move &middot; Esc or P: pause &middot; F: performance panel
+  </footer>
+  <pre id="debug" class="hidden"></pre>
+</div>
+<!-- Loaded in order: each file only uses the ones above it. -->
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/dom.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/maze.js"></script>
+<script src="js/movement.js"></script>
+<script src="js/pacman.js"></script>
+<script src="js/ghosts.js"></script>
+<script src="js/render.js"></script>
+<script src="js/perf.js"></script>
+<script src="js/flow.js"></script>
+<script src="js/input.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

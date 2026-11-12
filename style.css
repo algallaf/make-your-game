@@ -1,0 +1,247 @@
+:root { --t: 28px; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #05050f;
+  color: #fff;
+  font-family: "Courier New", Courier, monospace;
+  overflow: hidden;
+  user-select: none;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* ---------- HUD ---------- */
+#hud {
+  display: flex;
+  gap: 28px;
+  padding: 6px 18px;
+  border: 2px solid #1c1c6b;
+  border-radius: 8px;
+  background: #0a0a22;
+}
+.stat { display: flex; flex-direction: column; align-items: center; min-width: 64px; }
+.lbl { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #8a8ad8; }
+.val { font-size: 20px; font-weight: bold; color: #ffe600; font-variant-numeric: tabular-nums; }
+.val.lives { letter-spacing: 3px; min-width: 70px; text-align: center; }
+.val.low { color: #ff5a5a; }
+
+#help { font-size: 12px; color: #7878b8; }
+
+/* ---------- Stage / board ---------- */
+#stage { position: relative; }
+
+#board {
+  position: relative;
+  width: calc(var(--t) * 19);
+  height: calc(var(--t) * 21);
+  overflow: hidden;
+  background: #000;
+  border: 2px solid #1c1c6b;
+  contain: layout paint size;
+}
+#walls, #dots, #pellets, #actors { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+#actors { pointer-events: none; }
+
+.wall {
+  position: absolute;
+  background: #07073a;
+  border: 0 solid #3a4bff;
+}
+.door {
+  position: absolute;
+  background: #ffb8de;
+}
+.dot, .pellet {
+  position: absolute;
+  background: #ffd9a8;
+  border-radius: 50%;
+}
+.pellet { background: #fff0c8; }
+.eaten { visibility: hidden; }
+
+/* only opacity is animated, on one container -> one cheap compositor layer */
+#pellets { animation: pellet-blink 0.7s steps(1) infinite; will-change: opacity; }
+@keyframes pellet-blink { 0% { opacity: 1; } 50% { opacity: 0.15; } }
+
+#walls.flash { animation: wall-flash 0.3s steps(1) infinite; }
+@keyframes wall-flash { 0% { opacity: 1; } 50% { opacity: 0.25; } }
+
+/* ---------- Sprites (moved only with transform) ---------- */
+.sprite {
+  position: absolute;
+  left: 0; top: 0;
+  width: var(--t);
+  height: var(--t);
+  will-change: transform;
+}
+
+.pac .body { position: absolute; inset: 7%; }
+.pac .half {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  background: #ffe600;
+  animation-duration: 0.28s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-delay: -0.07s;
+  animation-play-state: paused;
+}
+.pac .top {
+  top: 0;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  transform-origin: 50% 100%;
+  animation-name: chomp-top;
+}
+.pac .bot {
+  bottom: 0;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  transform-origin: 50% 0;
+  animation-name: chomp-bot;
+}
+.pac.moving .half { animation-play-state: running; }
+@keyframes chomp-top { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-40deg); } }
+@keyframes chomp-bot { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(40deg); } }
+
+#board.dying .pac .body { animation: pac-die 0.9s ease-in forwards; }
+@keyframes pac-die {
+  0% { transform: scale(1) rotate(0deg); opacity: 1; }
+  100% { transform: scale(0) rotate(270deg); opacity: 0; }
+}
+#board.dying .ghost, #board.clear .ghost { visibility: hidden; }
+
+/* Ghosts */
+.ghost .shape {
+  position: absolute;
+  inset: 7%;
+  border-radius: 50% 50% 0 0 / 58% 58% 0 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 83% 84%, 66% 100%, 50% 84%, 33% 100%, 16% 84%, 0 100%);
+}
+.ghost .body { background: var(--gc, #f00); }
+.ghost .flash { background: #fff; opacity: 0; }
+.ghost.blinky { --gc: #ff1a1a; }
+.ghost.pinky  { --gc: #ffb0ff; }
+.ghost.inky   { --gc: #19e6ff; }
+.ghost.clyde  { --gc: #ffa733; }
+
+.eyes { position: absolute; left: 20%; top: 26%; width: 60%; height: 30%; }
+.eye {
+  position: absolute;
+  top: 0;
+  width: 38%;
+  height: 100%;
+  background: #fff;
+  border-radius: 50%;
+}
+.eye:first-child { left: 0; }
+.eye:last-child { right: 0; }
+.eye b {
+  position: absolute;
+  left: 25%; top: 25%;
+  width: 50%; height: 50%;
+  background: #1a1aff;
+  border-radius: 50%;
+}
+.ghost[data-d="l"] .eye b { transform: translate(-35%, 0); }
+.ghost[data-d="r"] .eye b { transform: translate(35%, 0); }
+.ghost[data-d="u"] .eye b { transform: translate(0, -45%); }
+.ghost[data-d="d"] .eye b { transform: translate(0, 45%); }
+
+.ghost.fright .body { background: #2a2af0; }
+.ghost.fright .eye { background: #ffd0c0; transform: scale(0.55); }
+.ghost.fright .eye b { display: none; }
+.ghost.blink .flash { animation: flash 0.36s steps(1) infinite; }
+@keyframes flash { 0% { opacity: 0; } 50% { opacity: 1; } }
+.ghost.eaten .shape { visibility: hidden; }
+
+/* ---------- Floating score popups ---------- */
+.pop {
+  position: absolute;
+  color: #19e6ff;
+  font-weight: bold;
+  font-size: calc(var(--t) * 0.6);
+  pointer-events: none;
+  animation: pop-up 0.9s ease-out forwards;
+}
+@keyframes pop-up {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-24px); }
+}
+
+/* ---------- Messages & overlays ---------- */
+#msg {
+  position: absolute;
+  left: 0;
+  top: calc(var(--t) * 11);
+  width: 100%;
+  height: var(--t);
+  line-height: var(--t);
+  text-align: center;
+  font-size: calc(var(--t) * 0.8);
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: #ffe600;
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: rgba(0, 0, 10, 0.82);
+  text-align: center;
+  z-index: 5;
+}
+.overlay h1 { font-size: 42px; color: #ffe600; letter-spacing: 6px; }
+.overlay h2 { font-size: 30px; color: #ffe600; letter-spacing: 4px; }
+.overlay p { color: #c8c8ff; font-size: 14px; }
+.overlay .hint { font-size: 11px; color: #7878b8; margin-top: 6px; }
+.blink-text { animation: txt-blink 1s steps(1) infinite; }
+@keyframes txt-blink { 0% { opacity: 1; } 50% { opacity: 0.2; } }
+
+.menu-btn {
+  width: 190px;
+  padding: 10px 0;
+  font: bold 18px "Courier New", Courier, monospace;
+  letter-spacing: 2px;
+  color: #c8c8ff;
+  background: #0a0a22;
+  border: 2px solid #1c1c6b;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.menu-btn.sel { color: #000; background: #ffe600; border-color: #ffe600; }
+
+.hidden { display: none !important; }
+
+/* freeze every CSS animation while paused (render loop itself keeps running) */
+body.paused *, body.paused *::before, body.paused *::after { animation-play-state: paused !important; }
+body.paused #pause, body.paused #pause * { animation-play-state: running !important; }
+
+#debug {
+  position: fixed;
+  left: 8px;
+  top: 8px;
+  padding: 6px 10px;
+  font: 12px/1.4 "Courier New", Courier, monospace;
+  color: #7dff7d;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid #2a6a2a;
+  z-index: 20;
+  pointer-events: none;
+}
